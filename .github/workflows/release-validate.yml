@@ -27,7 +27,7 @@ jobs:
     name: Check Valid Release Version
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       issues: read
       pull-requests: read
     steps:
