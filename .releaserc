@@ -18,6 +18,17 @@
       }
     ],
     [
+      "@semantic-release/release-notes-generator",
+      {
+        "preset": "conventionalcommits",
+        "presetConfig": {
+          "preset": {
+            "name": "conventionalchangelog"
+          }
+        }
+      }
+    ],
+    [
       "@semantic-release/github",
       {
         "assets": [
