@@ -2,12 +2,12 @@ name: Build
 
 on:
   workflow_call:
-    inputs:
-      release-version:
-        description: 'Release version to build. Should be in format X.Y.Z and not include the v prefix'
-        required: false
-        type: string
-        default: '0.0.0'
+    # inputs:
+    #   release-version:
+    #     description: 'Release version to build. Should be in format X.Y.Z and not include the v prefix'
+    #     required: false
+    #     type: string
+    #     default: '0.0.0'
       # release-revision:
       #   description: 'Release revision to build'
       #   required: false
@@ -19,11 +19,29 @@ defaults:
     shell: bash
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    outputs:
+      release_version: ${{ steps.semantic_release.outputs.new_release_version || '0.0.0' }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+    - name: Semantic Release
+      uses: ./.github/semantic-release
+      id: semantic_release
+      with:
+        dry-run: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build:
     name: Build RPMs
     runs-on: ubuntu-24.04${{ matrix.arch == 'aarch64' && '-arm' || '' }}
-    env:
-      RELEASE_VERSION: ${{ inputs.release-version }}
+    needs: [version]
     container:
       image: rockylinux/rockylinux:${{ matrix.versions }}
     strategy:
@@ -41,9 +59,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
     - name: Build source
+      env:
+        RELEASE_VERSION: ${{ needs.version.outputs.release_version }}
       run: |
         tar --transform "s%^\\./%dnf-plugin-artifact-registry-${RELEASE_VERSION}/%" -cf "dnf-plugin-artifact-registry_${RELEASE_VERSION}.orig.tar.gz" .
     - name: Build RPM
+      env:
+        RELEASE_VERSION: ${{ needs.version.outputs.release_version  }}
       run: |
         export GOBIN=$(which go)
         export GOPATH=$(go env GOPATH)

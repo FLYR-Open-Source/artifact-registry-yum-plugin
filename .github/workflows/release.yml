@@ -10,49 +10,37 @@ on:
         default: false
 
 jobs:
-  get_release:
-    name: Get Release
-    uses: ./.github/workflows/semantic-release.yaml
-    with:
-      dry-run: true
-
   build-rpms:
     name: Build RPMs
-    needs: [get_release]
     uses: ./.github/workflows/build.yaml
     permissions:
       contents: read
-    if: ${{ needs.get_release.outputs.new_release_published == 'true' && !inputs.dry-run }}
-    with:
-      release-version: ${{ needs.get_release.outputs.new_release_version }}
+      issues: read
+      pull-requests: read
+    if: ${{ !inputs.dry-run }}
 
   release:
     name: Release
-    needs: [get_release, build-rpms]
+    needs: [build-rpms]
     runs-on: ubuntu-latest
     permissions:
       contents: write # to create GitHub release (cycjimmy/semantic-release-action)
-      id-token: write # to enable use of OIDC for npm provenance
       issues: write # to be able to comment on released issues
       pull-requests: write # to be able to comment on released pull requests
-    if: ${{ needs.get_release.outputs.new_release_published == 'true' }}
     steps:
+    - name: Checkout
+      uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
     - name: Download Release Artifact
       uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+      if: ${{ !inputs.dry-run }}
       with:
         merge-multiple: true
         pattern: built-rpms-*
         path: target/
     - name: Semantic Release
-      uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+      uses: ./.github/semantic-release
       id: semantic_release
       with:
-        semantic_version: 25.0.2
-        dry_run: ${{ github.event_name == 'pull_request' || inputs.dry-run }}
-        unset_gha_env: ${{ github.event_name == 'pull_request' }}
-        ci: ${{ github.event_name == 'pull_request' && false || '' }}
-        extra_plugins: |
-          @semantic-release/changelog
-          conventional-changelog-conventionalcommits
+        dry-run: ${{ inputs.dry-run }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
