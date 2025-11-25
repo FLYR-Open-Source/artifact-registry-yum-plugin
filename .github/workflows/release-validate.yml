@@ -26,9 +26,5 @@ jobs:
   check-release: # make sure commits are valid for a target branch
     name: Check Valid Release Version
     uses: ./.github/workflows/semantic-release.yaml
-    permissions:
-      contents: read
-      issues: read
-      pull-requests: read
     with:
       dry-run: true
