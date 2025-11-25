@@ -61,5 +61,4 @@ runs:
       unset_gha_env: ${{ inputs.unset-gha-env || false }}
       ci: ${{ inputs.ci || true }}
       extra_plugins: |
-        @semantic-release/changelog
         conventional-changelog-conventionalcommits
