@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  workflow_dispatch: # allow a release to be triggered manually
+    inputs:
+      dry-run:
+        description: 'Dry Run'
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  get_release:
+    name: Get Release
+    uses: ./.github/workflows/semantic-release.yaml
+    permissions:
+      contents: read # to create GitHub release (cycjimmy/semantic-release-action)
+      id-token: write # to enable use of OIDC for npm provenance
+      issues: read # to be able to comment on released issues
+      pull-requests: read # to be able to comment on released pull requests
+    with:
+      dry-run: true
+
+  build-rpms:
+    name: Build RPMs
+    needs: [get_release]
+    uses: ./.github/workflows/build.yaml
+    permissions:
+      contents: read
+      id-token: write
+    if: ${{ needs.get_release.outputs.new_release_published == 'true' && !inputs.dry-run }}
+    with:
+      release-version: ${{ needs.get_release.outputs.new_release_version }}
+
+  release:
+    name: Release
+    uses: ./.github/workflows/semantic-release.yaml
+    permissions:
+      contents: write # to create GitHub release (cycjimmy/semantic-release-action)
+      id-token: write # to enable use of OIDC for npm provenance
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+    with:
+      dry-run: ${{ inputs.dry-run || false }}
+      download-artifact-pattern: built-rpms-*
