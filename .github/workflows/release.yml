@@ -33,7 +33,7 @@ jobs:
       uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
       with:
         fetch-depth: 0
-        token: ${{ secrets.TEMP_GITHUB_PAT }}
+        token: ${{ secrets.GITHUB_TOKEN }}
     - name: Download Release Artifact
       uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
       if: ${{ !inputs.dry-run }}
@@ -47,4 +47,4 @@ jobs:
       with:
         dry-run: ${{ inputs.dry-run }}
       env:
-        GITHUB_TOKEN: ${{ secrets.TEMP_GITHUB_PAT }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
