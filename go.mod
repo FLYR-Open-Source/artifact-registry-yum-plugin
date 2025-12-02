@@ -1,6 +1,6 @@
 module github.com/GoogleCloudPlatform/artifact-registry-yum-plugin
 
-go 1.24.6
+go 1.25.5
 
 require golang.org/x/oauth2 v0.33.0
 
