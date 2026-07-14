@@ -52,7 +52,7 @@ outputs:
 runs:
   using: "composite"
   steps:
-  - uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+  - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
     with:
       # Version Spec of the version to use in SemVer notation.
       # It also admits such aliases as lts/*, latest, nightly and canary builds
